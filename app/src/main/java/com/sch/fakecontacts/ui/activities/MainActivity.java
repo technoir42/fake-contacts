@@ -3,19 +3,17 @@ package com.sch.fakecontacts.ui.activities;
 import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -25,9 +23,12 @@ import com.sch.fakecontacts.model.generator.ContactGenerator;
 import com.sch.fakecontacts.model.generator.GenerationOptions;
 import com.sch.fakecontacts.ui.dialogs.ProgressDialogFragment;
 
-public class MainActivity extends AppCompatActivity {
-    private static final int REQUEST_CODE_PERMISSIONS = 0;
-    private static final int REQUEST_CODE_SELECT_GROUP = 1;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.RuntimePermissions;
+
+@RuntimePermissions
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final int REQUEST_CODE_SELECT_GROUP = 0;
 
     private static final String PREF_CONTACT_COUNT = "contact_count";
     private static final String PREF_ERASE_EXISTING = "erase_existing";
@@ -51,10 +52,10 @@ public class MainActivity extends AppCompatActivity {
         eraseExistingView = (SwitchCompat) findViewById(R.id.switch_erase_existing);
 
         final Button generateButton = (Button) findViewById(R.id.button_generate);
-        generateButton.setOnClickListener(v -> onGenerateButtonClicked());
+        generateButton.setOnClickListener(this);
 
         selectGroupButton = (Button) findViewById(R.id.button_select_group);
-        selectGroupButton.setOnClickListener(v -> GroupsActivity.startForResult(this, REQUEST_CODE_SELECT_GROUP));
+        selectGroupButton.setOnClickListener(this);
 
         restorePersistentState();
     }
@@ -99,8 +100,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            generateContacts();
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.button_select_group:
+                MainActivityPermissionsDispatcher.selectGroupWithCheck(this);
+                break;
+            case R.id.button_generate:
+                if (validateParams()) {
+                    MainActivityPermissionsDispatcher.generateContactsWithCheck(this);
+                }
+                break;
         }
     }
 
@@ -108,16 +121,6 @@ public class MainActivity extends AppCompatActivity {
         final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("content://contacts/people/"));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
-    }
-
-    private void onGenerateButtonClicked() {
-        if (validateParams()) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-                generateContacts();
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_CODE_PERMISSIONS);
-            }
-        }
     }
 
     private int getContactCount() {
@@ -128,7 +131,13 @@ public class MainActivity extends AppCompatActivity {
         return countView.length() > 0;
     }
 
-    private void generateContacts() {
+    @NeedsPermission(Manifest.permission.READ_CONTACTS)
+    void selectGroup() {
+        GroupsActivity.startForResult(this, REQUEST_CODE_SELECT_GROUP);
+    }
+
+    @NeedsPermission(Manifest.permission.WRITE_CONTACTS)
+    void generateContacts() {
         final Long groupId = (Long) selectGroupButton.getTag();
         final GenerationOptions.Builder builder = new GenerationOptions.Builder()
                 .setContactCount(getContactCount())
