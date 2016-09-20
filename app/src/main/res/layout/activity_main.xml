@@ -82,6 +82,15 @@
             android:textAppearance="@style/Text" />
 
         <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_with_avatars"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:minHeight="@dimen/item_height"
+            android:text="@string/main_switch_with_avatars"
+            android:textAppearance="@style/Text" />
+
+        <android.support.v7.widget.SwitchCompat
             android:id="@+id/switch_erase_existing"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
