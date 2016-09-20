@@ -28,6 +28,4 @@ dependencies {
     apt "com.github.hotchemi:permissionsdispatcher-processor:$rootProject.ext.permissionsDispatcherVersion"
 
     compile "org.apache.commons:commons-lang3:3.4"
-
-    retrolambdaConfig "net.orfjackal.retrolambda:retrolambda:2.3.0"
 }
