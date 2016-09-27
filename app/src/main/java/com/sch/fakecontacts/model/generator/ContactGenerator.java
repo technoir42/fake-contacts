@@ -22,7 +22,8 @@ import java.util.List;
 
 public class ContactGenerator {
     private static final String ACCOUNT_NAME_PREFIX = "fake_account_";
-    private static final int AVATAR_SIZE = 256;
+    private static final int AVATAR_SIZE_PX = 256;
+    private static final int BATCH_SIZE = 200;
 
     private final Context context;
     private final GroupManager groupManager;
@@ -44,14 +45,22 @@ public class ContactGenerator {
 
         final long groupId = options.getGroupId() != -1 ? options.getGroupId() : groupManager.getDefaultGroupId();
 
-        for (int i = 0; i < options.getContactCount(); i++) {
-            createAccount(ops, i, options.getAccountType(), groupId, options);
-        }
+        final int contactCount = options.getContactCount();
+        final int batchCount = (int) Math.ceil(contactCount / (double) BATCH_SIZE);
+        for (int batch = 0; batch < batchCount; batch++) {
+            final int currentBatchSize = Math.min(BATCH_SIZE, contactCount - batch * BATCH_SIZE);
+            for (int i = 0; i < currentBatchSize; i++) {
+                createAccount(ops, batch * BATCH_SIZE + i, options.getAccountType(), groupId, options);
+            }
 
-        try {
-            context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-        } catch (RemoteException | OperationApplicationException e) {
-            e.printStackTrace();
+            try {
+                context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+            } catch (RemoteException | OperationApplicationException e) {
+                e.printStackTrace();
+                break;
+            }
+
+            ops.clear();
         }
     }
 
@@ -97,7 +106,7 @@ public class ContactGenerator {
         }
 
         if (options.withAvatars()) {
-            final Bitmap avatar = random.randomAvatar(AVATAR_SIZE, AVATAR_SIZE,
+            final Bitmap avatar = random.randomAvatar(AVATAR_SIZE_PX, AVATAR_SIZE_PX,
                     (firstName.charAt(0) + "" + lastName.charAt(0)).toUpperCase());
             op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
                     .withValueBackReference(Data.RAW_CONTACT_ID, index)
