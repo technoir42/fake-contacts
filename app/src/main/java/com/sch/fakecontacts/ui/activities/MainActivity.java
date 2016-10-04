@@ -199,7 +199,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressDialogFragment.show(activity.getSupportFragmentManager(), null);
+            activity.getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(progressDialogFragment, null)
+                    .commitAllowingStateLoss();
         }
 
         @Override
