@@ -30,5 +30,6 @@ dependencies {
     provided "com.google.auto.value:auto-value:$rootProject.ext.autoValueVersion"
     annotationProcessor "com.google.auto.value:auto-value:$rootProject.ext.autoValueVersion"
 
+    compile "com.google.guava:guava:$rootProject.ext.guavaVersion"
     compile "org.apache.commons:commons-lang3:3.4"
 }

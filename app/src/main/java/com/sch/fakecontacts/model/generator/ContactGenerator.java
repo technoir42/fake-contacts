@@ -20,14 +20,17 @@ import com.sch.fakecontacts.model.group.GroupManager;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ContactGenerator {
     private static final String ACCOUNT_NAME_PREFIX = "fake_account_";
-    private static final int AVATAR_SIZE_PX = 256;
     private static final int BATCH_SIZE = 200;
 
     private final Context context;
     private final GroupManager groupManager;
+    private final RandomContactGenerator randomContactGenerator = new RandomContactGenerator()
+            .withEmails(0, 3)
+            .withPhoneNumbers(1, 3);
 
     public ContactGenerator(Context context) {
         this.context = context;
@@ -66,8 +69,9 @@ public class ContactGenerator {
     }
 
     private void createAccount(List<ContentProviderOperation> ops, int id, String type, long groupId, GenerationOptions options) {
-        final int index = ops.size();
-        final RandomDataGenerator random = new RandomDataGenerator();
+        final int rawContactIndex = ops.size();
+
+        final Contact contact = randomContactGenerator.generate(id);
 
         ContentProviderOperation op = ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
                 .withValue(RawContacts.ACCOUNT_NAME, ACCOUNT_NAME_PREFIX + id)
@@ -75,75 +79,85 @@ public class ContactGenerator {
                 .build();
         ops.add(op);
 
-        final String firstName = "Fake";
-        final String lastName = "contact " + id;
-
-        op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
-                .withValueBackReference(Data.RAW_CONTACT_ID, index)
-                .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
-                .withValue(StructuredName.GIVEN_NAME, firstName)
-                .withValue(StructuredName.FAMILY_NAME, lastName)
-                .build();
-        ops.add(op);
-
-        if (options.withPhones()) {
-            op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
-                    .withValueBackReference(Data.RAW_CONTACT_ID, index)
-                    .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
-                    .withValue(Phone.NUMBER, random.phoneNumber())
-                    .withValue(Phone.TYPE, random.elementOf(Phone.TYPE_HOME, Phone.TYPE_WORK, Phone.TYPE_MOBILE, Phone.TYPE_OTHER))
-                    .build();
-            ops.add(op);
-        }
-
-        if (options.withEmails()) {
-            op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
-                    .withValueBackReference(Data.RAW_CONTACT_ID, index)
-                    .withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
-                    .withValue(Email.ADDRESS, random.email())
-                    .withValue(Email.TYPE, random.elementOf(Email.TYPE_HOME, Email.TYPE_WORK, Email.TYPE_MOBILE, Email.TYPE_OTHER))
-                    .build();
-            ops.add(op);
-        }
-
-        if (options.withAddresses()) {
-            final PostalAddress postalAddress = random.postalAddress();
+        if (contact.getName() != null) {
+            final ContactName contactName = contact.getName();
             final ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(Data.CONTENT_URI)
-                    .withValueBackReference(Data.RAW_CONTACT_ID, index)
-                    .withValue(Data.MIMETYPE, StructuredPostal.CONTENT_ITEM_TYPE)
-                    .withValue(StructuredPostal.TYPE, random.elementOf(StructuredPostal.TYPE_HOME, StructuredPostal.TYPE_WORK, StructuredPostal.TYPE_OTHER));
-            if (postalAddress.country() != null) {
-                builder.withValue(StructuredPostal.COUNTRY, postalAddress.country());
+                    .withValueBackReference(Data.RAW_CONTACT_ID, rawContactIndex)
+                    .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+            if (contactName.firstName() != null) {
+                builder.withValue(StructuredName.GIVEN_NAME, contactName.firstName());
             }
-            if (postalAddress.city() != null) {
-                builder.withValue(StructuredPostal.CITY, postalAddress.city());
+            if (contactName.lastName() != null) {
+                builder.withValue(StructuredName.FAMILY_NAME, contactName.lastName());
             }
-            if (postalAddress.region() != null) {
-                builder.withValue(StructuredPostal.REGION, postalAddress.region());
-            }
-            if (postalAddress.street() != null) {
-                builder.withValue(StructuredPostal.STREET, postalAddress.street());
-            }
-            if (postalAddress.postcode() != null) {
-                builder.withValue(StructuredPostal.POSTCODE, postalAddress.postcode());
+            if (contactName.middleName() != null) {
+                builder.withValue(StructuredName.MIDDLE_NAME, contactName.middleName());
             }
             ops.add(builder.build());
         }
 
-        if (options.withAvatars()) {
-            final Bitmap avatar = random.avatar(AVATAR_SIZE_PX, AVATAR_SIZE_PX,
-                    (firstName.charAt(0) + "" + lastName.charAt(0)).toUpperCase());
+        if (options.withPhones()) {
+            for (Map.Entry<PhoneType, String> entry : contact.getPhoneNumbers().entries()) {
+                op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                        .withValueBackReference(Data.RAW_CONTACT_ID, rawContactIndex)
+                        .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+                        .withValue(Phone.NUMBER, entry.getValue())
+                        .withValue(Phone.TYPE, phoneTypeToInt(entry.getKey()))
+                        .build();
+                ops.add(op);
+            }
+        }
+
+        if (options.withEmails()) {
+            for (Map.Entry<EmailType, String> entry : contact.getEmails().entries()) {
+                op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                        .withValueBackReference(Data.RAW_CONTACT_ID, rawContactIndex)
+                        .withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
+                        .withValue(Email.ADDRESS, entry.getValue())
+                        .withValue(Email.TYPE, emailTypeToInt(entry.getKey()))
+                        .build();
+                ops.add(op);
+            }
+        }
+
+        if (options.withAddresses()) {
+            for (PostalAddressType postalAddressType : contact.getPostalAddresses().keySet()) {
+                final PostalAddress postalAddress = contact.getPostalAddresses().get(postalAddressType);
+                final ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                        .withValueBackReference(Data.RAW_CONTACT_ID, rawContactIndex)
+                        .withValue(Data.MIMETYPE, StructuredPostal.CONTENT_ITEM_TYPE)
+                        .withValue(StructuredPostal.TYPE, postalAddressTypeToInt(postalAddressType));
+                if (postalAddress.country() != null) {
+                    builder.withValue(StructuredPostal.COUNTRY, postalAddress.country());
+                }
+                if (postalAddress.city() != null) {
+                    builder.withValue(StructuredPostal.CITY, postalAddress.city());
+                }
+                if (postalAddress.region() != null) {
+                    builder.withValue(StructuredPostal.REGION, postalAddress.region());
+                }
+                if (postalAddress.street() != null) {
+                    builder.withValue(StructuredPostal.STREET, postalAddress.street());
+                }
+                if (postalAddress.postcode() != null) {
+                    builder.withValue(StructuredPostal.POSTCODE, postalAddress.postcode());
+                }
+                ops.add(builder.build());
+            }
+        }
+
+        if (options.withAvatars() && contact.getAvatar() != null) {
             op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
-                    .withValueBackReference(Data.RAW_CONTACT_ID, index)
+                    .withValueBackReference(Data.RAW_CONTACT_ID, rawContactIndex)
                     .withValue(Data.MIMETYPE, Photo.CONTENT_ITEM_TYPE)
-                    .withValue(Photo.PHOTO, bitmapToByteArray(avatar))
+                    .withValue(Photo.PHOTO, bitmapToByteArray(contact.getAvatar()))
                     .build();
             ops.add(op);
-            avatar.recycle();
+            contact.getAvatar().recycle();
         }
 
         op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
-                .withValueBackReference(Data.RAW_CONTACT_ID, index)
+                .withValueBackReference(Data.RAW_CONTACT_ID, rawContactIndex)
                 .withValue(Data.MIMETYPE, GroupMembership.CONTENT_ITEM_TYPE)
                 .withValue(GroupMembership.GROUP_ROW_ID, groupId)
                 .withYieldAllowed(true)
@@ -155,5 +169,48 @@ public class ContactGenerator {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 0, output);
         return output.toByteArray();
+    }
+
+    private int emailTypeToInt(EmailType emailType) {
+        switch (emailType) {
+            case Home:
+                return Email.TYPE_HOME;
+            case Work:
+                return Email.TYPE_WORK;
+            case Mobile:
+                return Email.TYPE_MOBILE;
+            case Other:
+                return Email.TYPE_OTHER;
+            default:
+                throw new RuntimeException("Unhandled EmailType: " + emailType);
+        }
+    }
+
+    private int phoneTypeToInt(PhoneType phoneType) {
+        switch (phoneType) {
+            case Home:
+                return Phone.TYPE_HOME;
+            case Work:
+                return Phone.TYPE_WORK;
+            case Mobile:
+                return Phone.TYPE_MOBILE;
+            case Other:
+                return Phone.TYPE_OTHER;
+            default:
+                throw new RuntimeException("Unhandled PhoneType: " + phoneType);
+        }
+    }
+
+    private int postalAddressTypeToInt(PostalAddressType postalAddressType) {
+        switch (postalAddressType) {
+            case Home:
+                return StructuredPostal.TYPE_HOME;
+            case Work:
+                return StructuredPostal.TYPE_WORK;
+            case Other:
+                return StructuredPostal.TYPE_OTHER;
+            default:
+                throw new RuntimeException("Unhandled PostalAddressType: " + postalAddressType);
+        }
     }
 }
