@@ -34,10 +34,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String PREF_ERASE_EXISTING = "erase_existing";
     private static final String PREF_WITH_EMAILS = "with_emails";
     private static final String PREF_WITH_PHONES = "with_phones";
+    private static final String PREF_WITH_ADDRESSES = "with_addresses";
     private static final String PREF_WITH_AVATARS = "with_avatars";
 
     private SwitchCompat withEmailsView;
     private SwitchCompat withPhonesView;
+    private SwitchCompat withAddressesView;
     private SwitchCompat withAvatarsView;
     private SwitchCompat eraseExistingView;
     private EditText countView;
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         countView = (EditText) findViewById(R.id.edit_count);
         withEmailsView = (SwitchCompat) findViewById(R.id.switch_with_emails);
         withPhonesView = (SwitchCompat) findViewById(R.id.switch_with_phones);
+        withAddressesView = (SwitchCompat) findViewById(R.id.switch_with_addresses);
         withAvatarsView = (SwitchCompat) findViewById(R.id.switch_with_avatars);
         eraseExistingView = (SwitchCompat) findViewById(R.id.switch_erase_existing);
 
@@ -155,6 +158,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (withPhonesView.isChecked()) {
             builder.withPhones();
         }
+        if (withAddressesView.isChecked()) {
+            builder.withAddresses();
+        }
         if (withAvatarsView.isChecked()) {
             builder.withAvatars();
         }
@@ -168,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         withEmailsView.setChecked(getPreferences().getBoolean(PREF_WITH_EMAILS, true));
         withPhonesView.setChecked(getPreferences().getBoolean(PREF_WITH_PHONES, true));
+        withAddressesView.setChecked(getPreferences().getBoolean(PREF_WITH_ADDRESSES, false));
         withAvatarsView.setChecked(getPreferences().getBoolean(PREF_WITH_AVATARS, false));
     }
 
@@ -177,6 +184,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .putBoolean(PREF_ERASE_EXISTING, eraseExistingView.isChecked())
                 .putBoolean(PREF_WITH_EMAILS, withEmailsView.isChecked())
                 .putBoolean(PREF_WITH_PHONES, withPhonesView.isChecked())
+                .putBoolean(PREF_WITH_ADDRESSES, withAddressesView.isChecked())
                 .putBoolean(PREF_WITH_AVATARS, withAvatarsView.isChecked())
                 .apply();
     }

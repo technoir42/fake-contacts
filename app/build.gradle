@@ -23,8 +23,12 @@ dependencies {
     compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
     compile "com.android.support:recyclerview-v7:$rootProject.ext.supportLibraryVersion"
     compile "com.android.support:design:$rootProject.ext.supportLibraryVersion"
+
     compile "com.github.hotchemi:permissionsdispatcher:$rootProject.ext.permissionsDispatcherVersion"
     annotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:$rootProject.ext.permissionsDispatcherVersion"
+
+    provided "com.google.auto.value:auto-value:$rootProject.ext.autoValueVersion"
+    annotationProcessor "com.google.auto.value:auto-value:$rootProject.ext.autoValueVersion"
 
     compile "org.apache.commons:commons-lang3:3.4"
 }

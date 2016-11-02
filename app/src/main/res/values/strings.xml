@@ -18,6 +18,7 @@
     <string name="main_switch_erase_existing">Erase existing generated contacts</string>
     <string name="main_switch_with_phones">With phones</string>
     <string name="main_switch_with_emails">With emails</string>
+    <string name="main_switch_with_addresses">With addresses</string>
     <string name="main_switch_with_avatars">With avatars</string>
 
     <string name="groups_action_confirm">Confirm</string>

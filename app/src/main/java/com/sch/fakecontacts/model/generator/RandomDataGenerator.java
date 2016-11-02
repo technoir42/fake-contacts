@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.text.TextPaint;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Random;
 
@@ -19,8 +20,22 @@ public class RandomDataGenerator {
     }
 
     public String email() {
-        return RandomStringUtils.randomAlphabetic(8).toLowerCase() + "@" +
-                RandomStringUtils.randomAlphabetic(6).toLowerCase() + ".com";
+        return randomAlphabeticString(5, 10).toLowerCase() + "@" +
+                randomAlphabeticString(4, 7).toLowerCase() + ".com";
+    }
+
+    public PostalAddress postalAddress() {
+        final PostalAddress.Builder builder = PostalAddress.builder()
+                .setCountry(StringUtils.capitalize(randomAlphabeticString(5, 9).toLowerCase()))
+                .setCity(StringUtils.capitalize(randomAlphabeticString(4, 9).toLowerCase()))
+                .setStreet(StringUtils.capitalize(randomAlphabeticString(10, 20).toLowerCase()));
+        if (random.nextBoolean()) {
+            builder.setRegion(StringUtils.capitalize(randomAlphabeticString(5, 9).toLowerCase()));
+        }
+        if (random.nextBoolean()) {
+            builder.setPostcode(String.valueOf(random.nextInt(1000000)));
+        }
+        return builder.build();
     }
 
     public Bitmap avatar(int width, int height, String initials) {
@@ -53,5 +68,10 @@ public class RandomDataGenerator {
     @SuppressWarnings("unchecked")
     public final <T> T elementOf(T... values) {
         return values[random.nextInt(values.length)];
+    }
+
+    private String randomAlphabeticString(int minLength, int maxLength) {
+        final int length = minLength + random.nextInt(maxLength - minLength + 1);
+        return RandomStringUtils.randomAlphabetic(length);
     }
 }

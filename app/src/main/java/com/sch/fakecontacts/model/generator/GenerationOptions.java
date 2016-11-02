@@ -7,6 +7,7 @@ public class GenerationOptions {
     private final boolean eraseExisting;
     private final boolean withEmails;
     private final boolean withPhones;
+    private final boolean withAddresses;
     private final boolean withAvatars;
 
     GenerationOptions(Builder builder) {
@@ -16,6 +17,7 @@ public class GenerationOptions {
         eraseExisting = builder.eraseExisting;
         withEmails = builder.withEmails;
         withPhones = builder.withPhones;
+        withAddresses = builder.withAddresses;
         withAvatars = builder.withAvatars;
     }
 
@@ -43,6 +45,10 @@ public class GenerationOptions {
         return withPhones;
     }
 
+    public boolean withAddresses() {
+        return withAddresses;
+    }
+
     public boolean withAvatars() {
         return withAvatars;
     }
@@ -54,6 +60,7 @@ public class GenerationOptions {
         private boolean eraseExisting;
         private boolean withEmails;
         private boolean withPhones;
+        private boolean withAddresses;
         private boolean withAvatars;
 
         public Builder setContactCount(int contactCount) {
@@ -83,6 +90,11 @@ public class GenerationOptions {
 
         public Builder withPhones() {
             this.withPhones = true;
+            return this;
+        }
+
+        public Builder withAddresses() {
+            this.withAddresses = true;
             return this;
         }
 

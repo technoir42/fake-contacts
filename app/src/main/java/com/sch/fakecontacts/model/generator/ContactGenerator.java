@@ -11,6 +11,7 @@ import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 
@@ -103,6 +104,30 @@ public class ContactGenerator {
                     .withValue(Email.TYPE, random.elementOf(Email.TYPE_HOME, Email.TYPE_WORK, Email.TYPE_MOBILE, Email.TYPE_OTHER))
                     .build();
             ops.add(op);
+        }
+
+        if (options.withAddresses()) {
+            final PostalAddress postalAddress = random.postalAddress();
+            final ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                    .withValueBackReference(Data.RAW_CONTACT_ID, index)
+                    .withValue(Data.MIMETYPE, StructuredPostal.CONTENT_ITEM_TYPE)
+                    .withValue(StructuredPostal.TYPE, random.elementOf(StructuredPostal.TYPE_HOME, StructuredPostal.TYPE_WORK, StructuredPostal.TYPE_OTHER));
+            if (postalAddress.country() != null) {
+                builder.withValue(StructuredPostal.COUNTRY, postalAddress.country());
+            }
+            if (postalAddress.city() != null) {
+                builder.withValue(StructuredPostal.CITY, postalAddress.city());
+            }
+            if (postalAddress.region() != null) {
+                builder.withValue(StructuredPostal.REGION, postalAddress.region());
+            }
+            if (postalAddress.street() != null) {
+                builder.withValue(StructuredPostal.STREET, postalAddress.street());
+            }
+            if (postalAddress.postcode() != null) {
+                builder.withValue(StructuredPostal.POSTCODE, postalAddress.postcode());
+            }
+            ops.add(builder.build());
         }
 
         if (options.withAvatars()) {
