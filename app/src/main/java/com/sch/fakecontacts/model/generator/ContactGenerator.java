@@ -89,8 +89,8 @@ public class ContactGenerator {
             op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
                     .withValueBackReference(Data.RAW_CONTACT_ID, index)
                     .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
-                    .withValue(Phone.NUMBER, random.randomPhoneNumber())
-                    .withValue(Phone.TYPE, Phone.TYPE_MOBILE)
+                    .withValue(Phone.NUMBER, random.phoneNumber())
+                    .withValue(Phone.TYPE, random.elementOf(Phone.TYPE_HOME, Phone.TYPE_WORK, Phone.TYPE_MOBILE, Phone.TYPE_OTHER))
                     .build();
             ops.add(op);
         }
@@ -99,14 +99,14 @@ public class ContactGenerator {
             op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
                     .withValueBackReference(Data.RAW_CONTACT_ID, index)
                     .withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
-                    .withValue(Email.ADDRESS, random.randomEmail())
-                    .withValue(Email.TYPE, Email.TYPE_HOME)
+                    .withValue(Email.ADDRESS, random.email())
+                    .withValue(Email.TYPE, random.elementOf(Email.TYPE_HOME, Email.TYPE_WORK, Email.TYPE_MOBILE, Email.TYPE_OTHER))
                     .build();
             ops.add(op);
         }
 
         if (options.withAvatars()) {
-            final Bitmap avatar = random.randomAvatar(AVATAR_SIZE_PX, AVATAR_SIZE_PX,
+            final Bitmap avatar = random.avatar(AVATAR_SIZE_PX, AVATAR_SIZE_PX,
                     (firstName.charAt(0) + "" + lastName.charAt(0)).toUpperCase());
             op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
                     .withValueBackReference(Data.RAW_CONTACT_ID, index)

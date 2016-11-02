@@ -14,16 +14,16 @@ public class RandomDataGenerator {
     private final Random random = new Random();
     private final Paint textPaint = new TextPaint();
 
-    public String randomPhoneNumber() {
+    public String phoneNumber() {
         return "+79" + RandomStringUtils.randomNumeric(9);
     }
 
-    public String randomEmail() {
+    public String email() {
         return RandomStringUtils.randomAlphabetic(8).toLowerCase() + "@" +
                 RandomStringUtils.randomAlphabetic(6).toLowerCase() + ".com";
     }
 
-    public Bitmap randomAvatar(int width, int height, String initials) {
+    public Bitmap avatar(int width, int height, String initials) {
         final int red = random.nextInt(256);
         final int green = random.nextInt(256);
         final int blue = random.nextInt(256);
@@ -48,5 +48,10 @@ public class RandomDataGenerator {
         final int y = (int) (canvas.getHeight() / 2 - (textPaint.descent() + textPaint.ascent()) / 2) ;
         canvas.drawText(initials, x, y, textPaint);
         return bitmap;
+    }
+
+    @SuppressWarnings("unchecked")
+    public final <T> T elementOf(T... values) {
+        return values[random.nextInt(values.length)];
     }
 }
