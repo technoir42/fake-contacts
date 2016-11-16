@@ -4,23 +4,23 @@ public class GenerationOptions {
     private final int contactCount;
     private final String accountType;
     private final long groupId;
-    private final boolean eraseExisting;
     private final boolean withEmails;
     private final boolean withPhones;
     private final boolean withAddresses;
     private final boolean withAvatars;
     private final boolean withEvents;
+    private final boolean overwriteExisting;
 
     GenerationOptions(Builder builder) {
         contactCount = builder.contactCount;
         accountType = builder.accountType;
         groupId = builder.groupId;
-        eraseExisting = builder.eraseExisting;
         withEmails = builder.withEmails;
         withPhones = builder.withPhones;
         withAddresses = builder.withAddresses;
         withAvatars = builder.withAvatars;
         withEvents = builder.withEvents;
+        overwriteExisting = builder.overwriteExisting;
     }
 
     public int getContactCount() {
@@ -33,10 +33,6 @@ public class GenerationOptions {
 
     public long getGroupId() {
         return groupId;
-    }
-
-    public boolean eraseExisting() {
-        return eraseExisting;
     }
 
     public boolean withEmails() {
@@ -59,16 +55,20 @@ public class GenerationOptions {
         return withEvents;
     }
 
+    public boolean overwriteExisting() {
+        return overwriteExisting;
+    }
+
     public static class Builder {
         int contactCount;
         String accountType = "com.google";
         long groupId = -1;
-        boolean eraseExisting;
         boolean withEmails;
         boolean withPhones;
         boolean withAddresses;
         boolean withAvatars;
         boolean withEvents;
+        boolean overwriteExisting;
 
         public Builder setContactCount(int contactCount) {
             this.contactCount = contactCount;
@@ -82,11 +82,6 @@ public class GenerationOptions {
 
         public Builder setGroupId(long groupId) {
             this.groupId = groupId;
-            return this;
-        }
-
-        public Builder setEraseExisting(boolean eraseExisting) {
-            this.eraseExisting = eraseExisting;
             return this;
         }
 
@@ -112,6 +107,11 @@ public class GenerationOptions {
 
         public Builder withEvents() {
             withEvents = true;
+            return this;
+        }
+
+        public Builder setOverwriteExisting(boolean overwriteExisting) {
+            this.overwriteExisting = overwriteExisting;
             return this;
         }
 

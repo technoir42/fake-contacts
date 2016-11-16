@@ -1,6 +1,7 @@
 package com.sch.fakecontacts.ui.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -21,7 +22,7 @@ import android.widget.Toast;
 import com.sch.fakecontacts.R;
 import com.sch.fakecontacts.model.generator.ContactGenerator;
 import com.sch.fakecontacts.model.generator.GenerationOptions;
-import com.sch.fakecontacts.ui.dialogs.ProgressDialogFragment;
+import com.sch.fakecontacts.ui.dialogs.ProgressDialogController;
 
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
@@ -31,19 +32,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_CODE_SELECT_GROUP = 0;
 
     private static final String PREF_CONTACT_COUNT = "contact_count";
-    private static final String PREF_ERASE_EXISTING = "erase_existing";
     private static final String PREF_WITH_EMAILS = "with_emails";
     private static final String PREF_WITH_PHONES = "with_phones";
     private static final String PREF_WITH_ADDRESSES = "with_addresses";
     private static final String PREF_WITH_AVATARS = "with_avatars";
     private static final String PREF_WITH_EVENTS = "with_events";
+    private static final String PREF_OVERWRITE_EXISTING = "overwrite_existing";
 
     private SwitchCompat withEmailsView;
     private SwitchCompat withPhonesView;
     private SwitchCompat withAddressesView;
     private SwitchCompat withAvatarsView;
     private SwitchCompat withEventsView;
-    private SwitchCompat eraseExistingView;
+    private SwitchCompat overwriteExistingView;
     private EditText countView;
     private Button selectGroupButton;
 
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         withAddressesView = (SwitchCompat) findViewById(R.id.switch_with_addresses);
         withAvatarsView = (SwitchCompat) findViewById(R.id.switch_with_avatars);
         withEventsView = (SwitchCompat) findViewById(R.id.switch_with_events);
-        eraseExistingView = (SwitchCompat) findViewById(R.id.switch_erase_existing);
+        overwriteExistingView = (SwitchCompat) findViewById(R.id.switch_overwrite_existing);
 
         final Button generateButton = (Button) findViewById(R.id.button_generate);
         generateButton.setOnClickListener(this);
@@ -85,7 +86,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_open_contacts:
-                openContacts();
+                openContactsApp();
+                return true;
+            case R.id.action_delete_generated_contacts:
+                MainActivityPermissionsDispatcher.deleteGeneratedContactsWithCheck(this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -126,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void openContacts() {
+    private void openContactsApp() {
         final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("content://contacts/people/"));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
@@ -150,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final Long groupId = (Long) selectGroupButton.getTag();
         final GenerationOptions.Builder builder = new GenerationOptions.Builder()
                 .setContactCount(getContactCount())
-                .setEraseExisting(eraseExistingView.isChecked());
+                .setOverwriteExisting(overwriteExistingView.isChecked());
 
         if (groupId != null) {
             builder.setGroupId(groupId);
@@ -173,27 +177,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         new GenerateContactsTask(this, builder.build()).execute();
     }
 
+    @NeedsPermission(Manifest.permission.WRITE_CONTACTS)
+    void deleteGeneratedContacts() {
+        new DeleteGeneratedContactsTask(this).execute();
+    }
+
     private void restorePersistentState() {
         final int contactCount = getPreferences().getInt(PREF_CONTACT_COUNT, 100);
         countView.setText(String.valueOf(contactCount));
-        eraseExistingView.setChecked(getPreferences().getBoolean(PREF_ERASE_EXISTING, true));
 
         withEmailsView.setChecked(getPreferences().getBoolean(PREF_WITH_EMAILS, true));
         withPhonesView.setChecked(getPreferences().getBoolean(PREF_WITH_PHONES, true));
         withAddressesView.setChecked(getPreferences().getBoolean(PREF_WITH_ADDRESSES, false));
         withAvatarsView.setChecked(getPreferences().getBoolean(PREF_WITH_AVATARS, false));
         withEventsView.setChecked(getPreferences().getBoolean(PREF_WITH_EVENTS, true));
+
+        overwriteExistingView.setChecked(getPreferences().getBoolean(PREF_OVERWRITE_EXISTING, true));
     }
 
     private void savePersistentState() {
         getPreferences().edit()
                 .putInt(PREF_CONTACT_COUNT, getContactCount())
-                .putBoolean(PREF_ERASE_EXISTING, eraseExistingView.isChecked())
                 .putBoolean(PREF_WITH_EMAILS, withEmailsView.isChecked())
                 .putBoolean(PREF_WITH_PHONES, withPhonesView.isChecked())
                 .putBoolean(PREF_WITH_ADDRESSES, withAddressesView.isChecked())
                 .putBoolean(PREF_WITH_AVATARS, withAvatarsView.isChecked())
                 .putBoolean(PREF_WITH_EVENTS, withEventsView.isChecked())
+                .putBoolean(PREF_OVERWRITE_EXISTING, overwriteExistingView.isChecked())
                 .apply();
     }
 
@@ -202,36 +212,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private static class GenerateContactsTask extends AsyncTask<Void, Void, Void> {
-        private final FragmentActivity activity;
+        private final Context context;
         private final GenerationOptions options;
-        private final ProgressDialogFragment progressDialogFragment;
+        private final ProgressDialogController progressDialogController;
 
         GenerateContactsTask(FragmentActivity activity, GenerationOptions options) {
-            this.activity = activity;
+            this.context = activity;
             this.options = options;
-            progressDialogFragment = ProgressDialogFragment.newInstance(activity, R.string.message_please_wait);
+            progressDialogController = new ProgressDialogController(activity, activity.getSupportFragmentManager());
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            activity.getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(progressDialogFragment, null)
-                    .commitAllowingStateLoss();
+            progressDialogController.show(R.string.message_please_wait);
         }
 
         @Override
         protected Void doInBackground(Void... params) {
-            new ContactGenerator(activity).generate(options);
+            new ContactGenerator(context).generate(options);
             return null;
         }
 
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            progressDialogFragment.dismissAllowingStateLoss();
-            Toast.makeText(activity, R.string.message_done, Toast.LENGTH_SHORT).show();
+            progressDialogController.dismiss();
+            Toast.makeText(context, R.string.message_done, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private static class DeleteGeneratedContactsTask extends AsyncTask<Void, Void, Void> {
+        private final Context context;
+        private final ProgressDialogController progressDialogController;
+
+        DeleteGeneratedContactsTask(FragmentActivity activity) {
+            context = activity;
+            progressDialogController = new ProgressDialogController(activity, activity.getSupportFragmentManager());
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialogController.show(R.string.message_please_wait);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            new ContactGenerator(context).deleteGeneratedContacts();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            progressDialogController.dismiss();
+            Toast.makeText(context, R.string.message_done, Toast.LENGTH_SHORT).show();
         }
     }
 }

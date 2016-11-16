@@ -11,16 +11,18 @@
     <string name="button_cancel">Cancel</string>
 
     <string name="main_action_open_contacts">Open Contacts</string>
+    <string name="main_action_delete_generated_contacts">Delete generated contacts</string>
+
     <string name="main_button_generate">Generate</string>
     <string name="main_button_select_group">Select</string>
     <string name="main_label_count">Number of contacts:</string>
     <string name="main_label_group">Group:</string>
-    <string name="main_switch_erase_existing">Erase existing generated contacts</string>
     <string name="main_switch_with_phones">With phones</string>
     <string name="main_switch_with_emails">With emails</string>
     <string name="main_switch_with_addresses">With addresses</string>
     <string name="main_switch_with_avatars">With avatars</string>
     <string name="main_switch_with_events">With events</string>
+    <string name="main_switch_overwrite_existing">Overwrite existing generated contacts</string>
 
     <string name="groups_action_confirm">Confirm</string>
     <string name="groups_label_no_groups">No groups</string>

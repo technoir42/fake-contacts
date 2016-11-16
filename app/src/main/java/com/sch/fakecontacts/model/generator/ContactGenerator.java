@@ -42,7 +42,7 @@ public class ContactGenerator {
     public void generate(GenerationOptions options) {
         final ArrayList<ContentProviderOperation> ops = new ArrayList<>();
 
-        if (options.eraseExisting()) {
+        if (options.overwriteExisting()) {
             ContentProviderOperation op = ContentProviderOperation.newDelete(RawContacts.CONTENT_URI)
                     .withSelection(RawContacts.ACCOUNT_NAME + " LIKE ?", new String[]{ACCOUNT_NAME_PREFIX + "%"})
                     .build();
@@ -68,6 +68,11 @@ public class ContactGenerator {
 
             ops.clear();
         }
+    }
+
+    public void deleteGeneratedContacts() {
+        context.getContentResolver().delete(RawContacts.CONTENT_URI, RawContacts.ACCOUNT_NAME + " LIKE ?",
+                new String[]{ACCOUNT_NAME_PREFIX + "%"});
     }
 
     private void createAccount(List<ContentProviderOperation> ops, int id, String type, long groupId, GenerationOptions options) {
