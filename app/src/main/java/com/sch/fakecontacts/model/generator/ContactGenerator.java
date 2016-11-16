@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class ContactGenerator {
     private static final String ACCOUNT_NAME_PREFIX = "fake_account_";
-    private static final int BATCH_SIZE = 200;
+    private static final int BATCH_SIZE = 100;
 
     private final Context context;
     private final GroupManager groupManager;
