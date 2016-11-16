@@ -20,6 +20,7 @@
     <string name="main_switch_with_emails">With emails</string>
     <string name="main_switch_with_addresses">With addresses</string>
     <string name="main_switch_with_avatars">With avatars</string>
+    <string name="main_switch_with_events">With events</string>
 
     <string name="groups_action_confirm">Confirm</string>
     <string name="groups_label_no_groups">No groups</string>

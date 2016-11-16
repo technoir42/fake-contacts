@@ -36,11 +36,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String PREF_WITH_PHONES = "with_phones";
     private static final String PREF_WITH_ADDRESSES = "with_addresses";
     private static final String PREF_WITH_AVATARS = "with_avatars";
+    private static final String PREF_WITH_EVENTS = "with_events";
 
     private SwitchCompat withEmailsView;
     private SwitchCompat withPhonesView;
     private SwitchCompat withAddressesView;
     private SwitchCompat withAvatarsView;
+    private SwitchCompat withEventsView;
     private SwitchCompat eraseExistingView;
     private EditText countView;
     private Button selectGroupButton;
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         withPhonesView = (SwitchCompat) findViewById(R.id.switch_with_phones);
         withAddressesView = (SwitchCompat) findViewById(R.id.switch_with_addresses);
         withAvatarsView = (SwitchCompat) findViewById(R.id.switch_with_avatars);
+        withEventsView = (SwitchCompat) findViewById(R.id.switch_with_events);
         eraseExistingView = (SwitchCompat) findViewById(R.id.switch_erase_existing);
 
         final Button generateButton = (Button) findViewById(R.id.button_generate);
@@ -164,6 +167,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (withAvatarsView.isChecked()) {
             builder.withAvatars();
         }
+        if (withEventsView.isChecked()) {
+            builder.withEvents();
+        }
         new GenerateContactsTask(this, builder.build()).execute();
     }
 
@@ -176,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         withPhonesView.setChecked(getPreferences().getBoolean(PREF_WITH_PHONES, true));
         withAddressesView.setChecked(getPreferences().getBoolean(PREF_WITH_ADDRESSES, false));
         withAvatarsView.setChecked(getPreferences().getBoolean(PREF_WITH_AVATARS, false));
+        withEventsView.setChecked(getPreferences().getBoolean(PREF_WITH_EVENTS, true));
     }
 
     private void savePersistentState() {
@@ -186,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .putBoolean(PREF_WITH_PHONES, withPhonesView.isChecked())
                 .putBoolean(PREF_WITH_ADDRESSES, withAddressesView.isChecked())
                 .putBoolean(PREF_WITH_AVATARS, withAvatarsView.isChecked())
+                .putBoolean(PREF_WITH_EVENTS, withEventsView.isChecked())
                 .apply();
     }
 

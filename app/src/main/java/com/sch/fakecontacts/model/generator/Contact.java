@@ -15,6 +15,7 @@ public class Contact {
     private final Multimap<EmailType, String> emails = LinkedHashMultimap.create();
     private final Multimap<PhoneType, String> phoneNumbers = LinkedHashMultimap.create();
     private final Map<PostalAddressType, PostalAddress> postalAddresses = new HashMap<>();
+    private final Map<EventType, String> events = new HashMap<>();
 
     public ContactName getName() {
         return name;
@@ -63,6 +64,15 @@ public class Contact {
 
     public Contact addPostalAddress(PostalAddressType postalAddressType, PostalAddress postalAddress) {
         postalAddresses.put(postalAddressType, postalAddress);
+        return this;
+    }
+
+    public Map<EventType, String> getEvents() {
+        return events;
+    }
+
+    public Contact addEvent(EventType eventType, String startDate) {
+        events.put(eventType, startDate);
         return this;
     }
 }

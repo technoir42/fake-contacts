@@ -32,4 +32,6 @@ dependencies {
 
     compile "com.google.guava:guava:$rootProject.ext.guavaVersion"
     compile "org.apache.commons:commons-lang3:3.4"
+
+    compile "com.jakewharton.threetenabp:threetenabp:1.0.4"
 }

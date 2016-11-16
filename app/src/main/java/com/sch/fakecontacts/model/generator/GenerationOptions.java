@@ -9,6 +9,7 @@ public class GenerationOptions {
     private final boolean withPhones;
     private final boolean withAddresses;
     private final boolean withAvatars;
+    private final boolean withEvents;
 
     GenerationOptions(Builder builder) {
         contactCount = builder.contactCount;
@@ -19,6 +20,7 @@ public class GenerationOptions {
         withPhones = builder.withPhones;
         withAddresses = builder.withAddresses;
         withAvatars = builder.withAvatars;
+        withEvents = builder.withEvents;
     }
 
     public int getContactCount() {
@@ -53,15 +55,20 @@ public class GenerationOptions {
         return withAvatars;
     }
 
+    public boolean withEvents() {
+        return withEvents;
+    }
+
     public static class Builder {
-        private int contactCount;
-        private String accountType = "com.google";
-        private long groupId = -1;
-        private boolean eraseExisting;
-        private boolean withEmails;
-        private boolean withPhones;
-        private boolean withAddresses;
-        private boolean withAvatars;
+        int contactCount;
+        String accountType = "com.google";
+        long groupId = -1;
+        boolean eraseExisting;
+        boolean withEmails;
+        boolean withPhones;
+        boolean withAddresses;
+        boolean withAvatars;
+        boolean withEvents;
 
         public Builder setContactCount(int contactCount) {
             this.contactCount = contactCount;
@@ -84,22 +91,27 @@ public class GenerationOptions {
         }
 
         public Builder withEmails() {
-            this.withEmails = true;
+            withEmails = true;
             return this;
         }
 
         public Builder withPhones() {
-            this.withPhones = true;
+            withPhones = true;
             return this;
         }
 
         public Builder withAddresses() {
-            this.withAddresses = true;
+            withAddresses = true;
             return this;
         }
 
         public Builder withAvatars() {
-            this.withAvatars = true;
+            withAvatars = true;
+            return this;
+        }
+
+        public Builder withEvents() {
+            withEvents = true;
             return this;
         }
 

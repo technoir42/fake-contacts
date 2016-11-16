@@ -8,22 +8,34 @@ import android.text.TextPaint;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.format.DateTimeFormatter;
 
 import java.util.Random;
 
 public class RandomContactGenerator {
     private static final int AVATAR_SIZE_PX = 256;
+    private static final DateTimeFormatter EVENT_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final Random random = new Random();
     private final Paint textPaint = new TextPaint();
     private int minEmails;
     private int maxEmails;
+    private int minEvents;
+    private int maxEvents;
     private int minPhoneNumbers;
     private int maxPhoneNumbers;
 
     public RandomContactGenerator withEmails(int minEmails, int maxEmails) {
         this.minEmails = minEmails;
         this.maxEmails = maxEmails;
+        return this;
+    }
+
+    public RandomContactGenerator withEvents(int minEvents, int maxEvents) {
+        this.minEvents = minEvents;
+        this.maxEvents = maxEvents;
         return this;
     }
 
@@ -40,13 +52,19 @@ public class RandomContactGenerator {
         contact.setAvatar(generateAvatar(AVATAR_SIZE_PX, AVATAR_SIZE_PX,
                 (contactName.firstName().charAt(0) + "" + contactName.lastName().charAt(0)).toUpperCase()));
         if (maxEmails != 0) {
-            final int numEmails = random.nextInt(maxEmails - minEmails + 1) + minEmails;
+            final int numEmails = randomValueBetween(minEmails, maxEmails);
             for (int i = 0; i < numEmails; i++) {
                 contact.addEmail(randomElementOf(EmailType.values()), generateEmail());
             }
         }
+        if (maxEvents != 0) {
+            final int numEvents = randomValueBetween(minEvents, maxEvents);
+            for (int i = 0; i < numEvents; i++) {
+                contact.addEvent(randomElementOf(EventType.values()), generateEventDate());
+            }
+        }
         if (maxPhoneNumbers != 0) {
-            final int numPhoneNumbers = random.nextInt(maxPhoneNumbers - minPhoneNumbers + 1) + minPhoneNumbers;
+            final int numPhoneNumbers = randomValueBetween(minPhoneNumbers, maxPhoneNumbers);
             for (int i = 0; i < numPhoneNumbers; i++) {
                 contact.addPhoneNumber(randomElementOf(PhoneType.values()), generatePhoneNumber());
             }
@@ -62,6 +80,13 @@ public class RandomContactGenerator {
     private String generateEmail() {
         return randomAlphabeticString(5, 10).toLowerCase() + "@" +
                 randomAlphabeticString(4, 7).toLowerCase() + ".com";
+    }
+
+    private String generateEventDate() {
+        final int year = randomValueBetween(1990, 2016);
+        final int month = randomValueBetween(1, 12);
+        final int day = randomValueBetween(1, YearMonth.of(year, month).lengthOfMonth());
+        return LocalDate.of(year, month, day).format(EVENT_DATE_FORMATTER);
     }
 
     private PostalAddress generatePostalAddress() {
@@ -103,6 +128,10 @@ public class RandomContactGenerator {
         final int y = (int) (canvas.getHeight() / 2 - (textPaint.descent() + textPaint.ascent()) / 2);
         canvas.drawText(initials, x, y, textPaint);
         return bitmap;
+    }
+
+    private int randomValueBetween(int min, int max) {
+        return random.nextInt(max - min + 1) + min;
     }
 
     @SuppressWarnings("unchecked")

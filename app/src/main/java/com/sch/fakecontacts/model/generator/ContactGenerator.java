@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.CommonDataKinds.Event;
 import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
@@ -30,6 +31,7 @@ public class ContactGenerator {
     private final GroupManager groupManager;
     private final RandomContactGenerator randomContactGenerator = new RandomContactGenerator()
             .withEmails(0, 3)
+            .withEvents(0, 1)
             .withPhoneNumbers(1, 3);
 
     public ContactGenerator(Context context) {
@@ -156,6 +158,18 @@ public class ContactGenerator {
             contact.getAvatar().recycle();
         }
 
+        if (options.withEvents()) {
+            for (Map.Entry<EventType, String> entry : contact.getEvents().entrySet()) {
+                op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                        .withValueBackReference(Data.RAW_CONTACT_ID, rawContactIndex)
+                        .withValue(Data.MIMETYPE, Event.CONTENT_ITEM_TYPE)
+                        .withValue(Event.TYPE, eventTypeToInt(entry.getKey()))
+                        .withValue(Event.START_DATE, entry.getValue())
+                        .build();
+                ops.add(op);
+            }
+        }
+
         op = ContentProviderOperation.newInsert(Data.CONTENT_URI)
                 .withValueBackReference(Data.RAW_CONTACT_ID, rawContactIndex)
                 .withValue(Data.MIMETYPE, GroupMembership.CONTENT_ITEM_TYPE)
@@ -183,6 +197,19 @@ public class ContactGenerator {
                 return Email.TYPE_OTHER;
             default:
                 throw new RuntimeException("Unhandled EmailType: " + emailType);
+        }
+    }
+
+    private int eventTypeToInt(EventType eventType) {
+        switch (eventType) {
+            case Birthday:
+                return Event.TYPE_BIRTHDAY;
+            case Anniversary:
+                return Event.TYPE_ANNIVERSARY;
+            case Other:
+                return Event.TYPE_OTHER;
+            default:
+                throw new RuntimeException("Unhandled EventType: " + eventType);
         }
     }
 
