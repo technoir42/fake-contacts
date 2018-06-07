@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         GroupsActivity.startForResult(this, REQUEST_CODE_SELECT_GROUP);
     }
 
-    @NeedsPermission(Manifest.permission.WRITE_CONTACTS)
+    @NeedsPermission({Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS})
     void generateContacts() {
         final Long groupId = (Long) selectGroupButton.getTag();
         final GenerationOptions.Builder builder = new GenerationOptions.Builder()
