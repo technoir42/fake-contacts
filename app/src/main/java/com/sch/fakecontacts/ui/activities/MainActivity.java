@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 openContactsApp();
                 return true;
             case R.id.action_delete_generated_contacts:
-                MainActivityPermissionsDispatcher.deleteGeneratedContactsWithCheck(this);
+                MainActivityPermissionsDispatcher.deleteGeneratedContactsWithPermissionCheck(this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -120,11 +120,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button_select_group:
-                MainActivityPermissionsDispatcher.selectGroupWithCheck(this);
+                MainActivityPermissionsDispatcher.selectGroupWithPermissionCheck(this);
                 break;
             case R.id.button_generate:
                 if (validateParams()) {
-                    MainActivityPermissionsDispatcher.generateContactsWithCheck(this);
+                    MainActivityPermissionsDispatcher.generateContactsWithPermissionCheck(this);
                 }
                 break;
         }
